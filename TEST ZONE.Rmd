@@ -210,18 +210,6 @@ Samples[code_name > "WS1"] <- "Sediment"
 Samples[code_name > "DWWS1"] <- "Freshwater"
 Samples[code_name > "WWS1"] <- "Freshwater"
 
-
-
-
-Samples <- "fish"
-#Samples[c(4,7,8,11,12,17,18,22,23,28,29,32,33,37,39)] <- "sediment"
-#Samples[c(6,9,10,13:15,19:21,24:26,30,31,34:36,40,41)] <- "water"
-
-
-Samples <- "fish"
-Samples[code_name > "WS1"] <- "Edremit"
-Samples[code_name > "WS2"] <- "Ergil-1"
-
 #Localisation
 Localisation <- "lake water"
 Localisation[code_name > "WS1"] <- "Edremit"

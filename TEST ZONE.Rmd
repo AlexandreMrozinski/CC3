@@ -174,7 +174,8 @@ code_name[Run == "SRR14616976"] <- "VB-11"
 code_name[Run == "SRR14616977"] <- "VB-2"
 code_name[Run == "SRR14616978"] <- "VB-1"
 
-Samples <- "Fish"
+
+Samples [1:61]<- "Fish"
 Samples[code_name == "WSWcontrol"] <- "Sediment"
 Samples[code_name == "WS9W"] <- "Freshwater"
 Samples[code_name == "WS9K"] <- "Sediment"
@@ -210,28 +211,22 @@ Samples[code_name == "WS1"] <- "Sediment"
 Samples[code_name == "DWWS1"] <- "Freshwater"
 Samples[code_name == "WWS1"] <- "Freshwater"
 
+
 #Localisation
-Localisation <- "lake water"
-Localisation[code_name > "WS1"] <- "Edremit"
-Localisation[code_name > "WS2"] <- "Ergil-1"
-Localisation[code_name > "WS3"] <- "Ergil-2"
-Localisation[code_name > "WS5"] <- "Gevaş"
-Localisation[code_name > "WS6"] <- "Gevaş-Tatvan"
-Localisation[code_name > "WS7"] <- "Gevaş-DSİ-1"
-Localisation[code_name > "WS8"] <- "Gevaş-DSİ-2"
-Localisation[code_name > "WS9"] <- "Akdamar"
+Localisation[1:61] <- "lake water"
+Localisation[code_name == "*WS1"] <- "Edremit"
+Localisation[code_name == "*WS2"] <- "Ergil-1"
+Localisation[code_name == "*WS3"] <- "Ergil-2"
+Localisation[code_name == "*WS5"] <- "Gevaş"
+Localisation[code_name == "*WS6"] <- "Gevaş-Tatvan"
+Localisation[code_name == "*WS7"] <- "Gevaş-DSİ-1"
+Localisation[code_name == "*WS8"] <- "Gevaş-DSİ-2"
+Localisation[code_name == "*WS9"] <- "Akdamar"
 
 samdf <- data.frame(Run, code_name, Samples, Localisation) 
 print(samdf)
 ```
 
 
-```{r}
-RunT <- c("SRR14616918", "SRR14616919", "SRR14616920", "SRR14616921", "SRR14616922", "SRR14616923", "SRR14616924", "SRR14616925", "SRR14616926", "SRR14616927", "SRR14616928", "SRR14616929", "SRR14616930", "SRR14616931", "SRR14616932", "SRR14616933", "SRR14616934", "SRR14616935", "SRR14616936", "SRR14616937", "SRR14616938", "SRR14616939", "SRR14616940", "SRR14616941", "SRR14616942", "SRR14616943", "SRR14616944", "SRR14616945", "SRR14616946", "SRR14616947", "SRR14616948", "SRR14616949", "SRR14616950", "SRR14616951", "SRR14616952", "SRR14616953", "SRR14616954", "SRR14616955", "SRR14616956", "SRR14616957", "SRR14616958", "SRR14616959", "SRR14616960", "SRR14616961", "SRR14616962", "SRR14616963", "SRR14616964", "SRR14616965", "SRR14616966", "SRR14616967", "SRR14616968", "SRR14616969", "SRR14616970", "SRR14616971", "SRR14616972", "SRR14616973", "SRR14616974", "SRR14616975", "SRR14616976", "SRR14616977", "SRR14616978")
 
-code_nameT <- "XXXXXX"
-code_nameT[RunT == "SRR14616918"] <- "VB-10"
-samdf <- data.frame(RunT, code_nameT) 
-print(samdf)
-```
 

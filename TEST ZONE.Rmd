@@ -1,0 +1,246 @@
+---
+title: "TEST ZONE"
+output: github_document
+author: Mrozinski Alexandre
+---
+```{r setup, eval=FALSE}
+knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
+```
+
+#etape de filtration de qualité
+```{r}
+out <- filterAndTrim(fwd = fnFs, filt = filtFs, 
+  rev = fnRs, filt.rev = filtRs, 
+              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE, trimLeft=c(50,55), truncLen=c(150,140),
+              compress=TRUE, multithread=TRUE)
+head(out)
+
+#on va pas en dessous de 250
+#il faut pas couper trop court pour pouvoir avoir une partie commune pour l'allignement (environ 20nt), ici on séquence la région V3 et V4 (300pb en tout) , on voit qu'on à des séquences de 150 nt en forward et 150nt en reverse 
+#truncLen veut dire qu'on coupe à 150 et 140 (déterminé jusqu'à où le score de qualité est acceptable ) 150 sur le R1=forward et 140 sur le R2=reverse, faut bien regarder la longueur des fragments pour garder une superposition des deux lors de l'alignement (overlap) si on coupe trop court on en aura pas 
+#maxN=0 quand séquenceur sait pas quelle pb c'est il met un N, donc on dit que si il y a au moins 1 N dans la seq on l'enlève car sera de mauvaise qualité 
+#truncQ : a chaque fois que le long d'une sequence on voit apparaitre un score de qualié qui est inférieur à Q20 il coupe la séquence à ce niveau
+#Trimleft : enlever les amorces à gauches (50 premiers nucléotides pour le forward et 55 premiers nucléotides pour le reverse)
+#filter and trim : fonction qui permet de faire la filtration quelité des séquences 
+#obtient read.in : nbr de séquences qu'il avait avant et read.out : nbr de séquences qu'il obtient après les avoir filtré
+```
+
+
+#model d'erreur
+
+```{r}
+errFs <- learnErrors(filtFs, multithread=TRUE)
+errRs <- learnErrors(filtRs, multithread=TRUE)
+```
+
+```{r}
+plotErrors(errFs, nominalQ=TRUE)
+```
+
+```{r}
+plotErrors(errRs, nominalQ=TRUE)
+```
+
+#corriger les erreurs
+
+```{r}
+dadaFs <- dada(filtFs, err=errFs, multithread=TRUE)
+```
+
+```{r}
+dadaRs <- dada(filtRs, err=errRs, multithread=TRUE)
+```
+
+
+#faire l'allignement des R1 et R2
+```{r}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, minOverlap = 1, verbose=TRUE)
+head(mergers[[1]])
+```
+
+#créer table d'observation des séquences :
+```{r}
+seqtabAll <- makeSequenceTable(mergers[!grepl("Mock", names(mergers))])
+table(nchar(getSequences(seqtabAll)))
+#on importe toutes les séquences de la table sauf celle Mock (car est une séquence artificielle introduite pour vérifier que ça marche)
+#deuxième ligne = nombre de caractères 
+#troisième ligne = nombre de séquences qui ont ce nombre de caractères 
+#permet de vérifier que l'allignement est bien fait
+
+```
+
+
+#enlever les chimères = séquences avec un bout de séquence d'une bactérie et un bout d'une autre bactérie , se produit pendant la PCR lorsque l'ARNpol se décroche avant la fin 
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtabAll, method="consensus", multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim)
+```
+
+```{r}
+sum(seqtab.nochim)/sum(seqtabAll)
+```
+
+#Track reads through the pipeline
+```{r}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+
+
+#annotation taxonomique
+```{bash, include=TRUE, eval=FALSE}
+#1-télécharger fichier
+wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
+```
+
+```{r}
+#assigner taxo
+taxa <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_train_set.fa.gz?download=1", multithread=TRUE)
+```
+
+```{r}
+taxa.print <- taxa 
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+```{bash, include=TRUE, eval=TRUE}
+wget http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData
+```
+
+
+```{r}
+dna <- DNAStringSet(getSequences(seqtab.nochim)) 
+load("SILVA_SSU_r138_2019.RData") 
+ids <- IdTaxa(dna, trainingSet, strand="top", processors=NULL, verbose=FALSE) 
+ranks <- c("domain", "phylum", "class", "order", "family", "genus", "species") 
+taxid <- t(sapply(ids, function(x) {
+        m <- match(ranks, x$rank)
+        taxa <- x$taxon[m]
+        taxa[startsWith(taxa, "unclassified_")] <- NA
+        taxa
+}))
+colnames(taxid) <- ranks; rownames(taxid) <- getSequences(seqtab.nochim)
+```
+
+```{r}
+theme_set(theme_bw())
+```
+
+```{r}
+samdf <- data.frame(code_name=code_name, sample_type=s_sample_type, localisation=localisation, depth=depth, Temperature=Temperature, pH=pH, oxygen=oxygen)
+```
+```{r}
+Sample <- c(1:10)
+Localisation <- c(2:11)
+Temperatures <-
+Profondeur <-
+Oxygen <-
+pH <-
+
+tableau <- data.frame(code_name=code_name, sample_type=s_sample_type, localisation=localisation, depth=depth, Temperature,                
+```
+
+```{r}
+samples.out <- rownames(seqtab.nochim)
+sample_type <- sapply(strsplit(samples.out, "_"), `[`, 2)
+s_sample_type <- substr(sample_type,1,1)
+code_name <- as.character(sapply(strsplit(samples.out, "_"), `[`, 2))
+localisation <- as.character(sapply(strsplit(samples.out, "_"), `[`, 3))
+depth <- as.character(sapply(strsplit(samples.out, "_"), `[`, 4))
+Temperature <- as.character(sapply(strsplit(samples.out, "_"), `[`, 5))
+pH <- as.character(sapply(strsplit(samples.out, "_"), `[`, 6))
+oxygen <- as.character(sapply(strsplit(samples.out, "_"), `[`, 7))
+
+
+samdf <- data.frame(code_name=code_name, sample_type=s_sample_type, localisation=localisation, depth=depth, Temperature=Temperature, pH=pH, oxygen=oxygen)
+
+samdf$sample_type <- "fish"
+samdf$sample_type[c(4,7,8,11,12,17,18,22,23,28,29,32,33,37,39)] <- "sediment"
+samdf$sample_type[c(6,9,10,13:15,19:21,24:26,30,31,34:36,40,41)] <- "water"
+samdf$code_name[1:61]<-c("VB1-10","VB1-9","VB1-8","WSWcontrol","VB1-7","WS9W","WS9K","WS9","WWS9","WS8W","WS8K","WS8","WWS8","WWS7","WS6W","VB1-6","WS6K","WS6","DWWS6","WWS6","WS5W","WS5K","WS5","DWWS5","WWS5","WS3W","VB1-5","WS3K","WS3","WWS3","WS2W","WS2K","WS2","DWWS2","WWS2","WS1W","WS1K","VB1-4","WS1","DWWS1","WWS1","VB2-27","VB2-26","VB2-25","VB2-24","VB2-23","VB2-22","VB2-21","VB1-3","VB2-20","VB2-19","VB2-18","VB2-17","VB2-16","VB2-15","VB1-14","VB1-13","VB1-12","VB1-11","VB1-2","VB1-1")
+
+
+#Localisation
+samdf$localisation <- "lake water"
+samdf$localisation[samdf$code_name > "WS1"] <- "Edremit"
+samdf$localisation[samdf$code_name > "WS2"] <- "Ergil-1"
+samdf$localisation[samdf$code_name > "WS3"] <- "Ergil-2"
+samdf$localisation[samdf$code_name > "WS5"] <- "Gevaş"
+samdf$localisation[samdf$code_name > "WS6"] <- "Gevaş-Tatvan"
+samdf$localisation[samdf$code_name > "WS7"] <- "Gevaş-DSİ-1"
+samdf$localisation[samdf$code_name > "WS8"] <- "Gevaş-DSİ-2"
+samdf$localisation[samdf$code_name > "WS9"] <- "Akdamar"
+#samdf$localisation[samdf$code_name > "VB1-"] <- "Edremit"
+#samdf$localisation[samdf$code_name > "VB2-"] <- "Gevaş-İnköy"
+
+#Temperatures
+samdf$Temperature <- "6.1"
+samdf$Temperature[samdf$localisation > "Ergil-1"] <- "9.2"
+samdf$Temperature[samdf$localisation > "Ergil-2"] <- "8.1"
+samdf$Temperature[samdf$localisation > "Gevaş"] <- "7.8"
+samdf$Temperature[samdf$localisation > "Gevaş-Tatvan"] <- "5.5"
+samdf$Temperature[samdf$localisation > "Gevaş-DSİ-1"] <- "5.5"
+samdf$Temperature[samdf$localisation > "Gevaş-DSİ-2"] <- "4.7"
+samdf$Temperature[samdf$localisation > "Akdamar"] <- "6.4"
+
+
+#profondeur
+samdf$depth<- "7-10"
+samdf$depth[samdf$localisation > "Ergil-1"] <- "0-1"
+samdf$depth[samdf$localisation > "Ergil-2"] <- "0-1"
+samdf$depth[samdf$localisation > "Gevaş"] <- "7-10"
+samdf$depth[samdf$localisation > "Gevaş-Tatvan"] <- "7-10"
+samdf$depth[samdf$localisation > "Gevaş-DSİ-1"] <- "7-10"
+samdf$depth[samdf$localisation > "Gevaş-DSİ-2"] <- "0-1"
+samdf$depth[samdf$localisation > "Akdamar"] <- "0-1"
+
+#oxygen
+samdf$oxygen <- "4"
+samdf$oxygen[samdf$localisation > "Ergil-1"] <- "4.2"
+samdf$oxygen[samdf$localisation > "Ergil-2"] <- "4.2"
+samdf$oxygen[samdf$localisation > "Gevaş (pier)"] <- "4.1"
+samdf$oxygen[samdf$localisation > "Gevaş"] <- "4.1"
+samdf$oxygen[samdf$localisation > "Gevaş-Tatvan"] <- "4.1"
+samdf$oxygen[samdf$localisation > "Gevaş-DSİ-1"] <- "4"
+samdf$oxygen[samdf$localisation > "Gevaş-DSİ-2"] <- "4"
+samdf$oxygen[samdf$localisation > "Akdamar"] <- "3.9"
+
+#pH
+samdf$pH <- "9.55"
+samdf$pH[samdf$localisation > "Ergil-1"] <- "9.57"
+samdf$pH[samdf$localisation > "Ergil-2"] <- "7.90"
+samdf$pH[samdf$localisation > "Gevaş"] <- "9.38"
+samdf$pH[samdf$localisation > "Tatvan"] <- "9.56"
+samdf$pH[samdf$localisation > "Gevaş-DSİ-1"] <- "9.56"
+samdf$pH[samdf$localisation > "Gevaş-DSİ-2"] <- "9.56"
+samdf$pH[samdf$localisation > "Akdamar"] <- "9.56"
+
+rownames(samdf) <- samples.out
+print(samdf)
+```
+```{r}
+vecteur1 <- c(1:10) ; vecteur2 <- c(2:11)
+tableau <- data.frame(vecteur1, vecteur2)
+```
+```{r}
+# en reprenant l'exemple ci-dessus
+colnames(tableau) <- c("V1","V2")
+# Si le tableau s'appelle data, on peut renommer ses colonnes
+data <- colnames(c("nouveau titre","titre nouveau"))
+# exemple
+data <- data.frame(t3=1:6, titre=rnorm(6)) ; data
+colnames(data) = c("nouveau titre","titre nouveau") ; data
+# On peut aussi simplifier le nom des colonnes du tableau pour pouvoir appeler le contenu d'une colonne sans utiliser le nom du fichier.
+# Pour un tableau de nom tablo et une colonne nommée Age
+Age = tablo$Age
+# Exemple
+tablo <- data.frame(Age=rpois(20,20), Taille=rnorm(20,170))
+Age = tablo$Age ; Taille = tablo$Taille
+Age ; Taille 
+```
+
+

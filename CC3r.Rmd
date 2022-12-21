@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
 ```{r library, include=FALSE}
+library(stringr)
 library(rmarkdown)
 library(knitr)
 library(phyloseq)
@@ -79,7 +80,9 @@ names(filtRs) <- sample.names
 ```
 
 ```{r}
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs)
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, trimLeft=c(50,55),
+              maxN=0, maxEE=c(55,55), truncQ=2, rm.phix=TRUE,
+              compress=TRUE, multithread=TRUE)
 head(out)
 ```
 
@@ -121,7 +124,7 @@ dadaRs[[1]]
 # Merge paired reads
 
 ```{r}
-mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, minOverlap=3, verbose=TRUE)
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, minOverlap=10, verbose=TRUE)
 head(mergers[[1]])
 ```
 
@@ -155,4 +158,20 @@ track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, 
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 head(track)
+```
+
+# Assign taxonomy
+
+```{bash, include=TRUE, eval=FALSE}
+wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
+```
+
+```{r}
+taxa <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_train_set.fa.gz?download=1", multithread=TRUE)
+```
+
+```{r}
+taxa.print <- taxa 
+rownames(taxa.print) <- NULL
+head(taxa.print)
 ```

@@ -7,141 +7,22 @@ author: Mrozinski Alexandre
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
-#etape de filtration de qualité
-```{r}
-out <- filterAndTrim(fwd = fnFs, filt = filtFs, 
-  rev = fnRs, filt.rev = filtRs, 
-              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE, trimLeft=c(50,55), truncLen=c(150,140),
-              compress=TRUE, multithread=TRUE)
-head(out)
-
-#on va pas en dessous de 250
-#il faut pas couper trop court pour pouvoir avoir une partie commune pour l'allignement (environ 20nt), ici on séquence la région V3 et V4 (300pb en tout) , on voit qu'on à des séquences de 150 nt en forward et 150nt en reverse 
-#truncLen veut dire qu'on coupe à 150 et 140 (déterminé jusqu'à où le score de qualité est acceptable ) 150 sur le R1=forward et 140 sur le R2=reverse, faut bien regarder la longueur des fragments pour garder une superposition des deux lors de l'alignement (overlap) si on coupe trop court on en aura pas 
-#maxN=0 quand séquenceur sait pas quelle pb c'est il met un N, donc on dit que si il y a au moins 1 N dans la seq on l'enlève car sera de mauvaise qualité 
-#truncQ : a chaque fois que le long d'une sequence on voit apparaitre un score de qualié qui est inférieur à Q20 il coupe la séquence à ce niveau
-#Trimleft : enlever les amorces à gauches (50 premiers nucléotides pour le forward et 55 premiers nucléotides pour le reverse)
-#filter and trim : fonction qui permet de faire la filtration quelité des séquences 
-#obtient read.in : nbr de séquences qu'il avait avant et read.out : nbr de séquences qu'il obtient après les avoir filtré
-```
 
 
-#model d'erreur
-
-```{r}
-errFs <- learnErrors(filtFs, multithread=TRUE)
-errRs <- learnErrors(filtRs, multithread=TRUE)
-```
-
-```{r}
-plotErrors(errFs, nominalQ=TRUE)
-```
-
-```{r}
-plotErrors(errRs, nominalQ=TRUE)
-```
-
-#corriger les erreurs
-
-```{r}
-dadaFs <- dada(filtFs, err=errFs, multithread=TRUE)
-```
-
-```{r}
-dadaRs <- dada(filtRs, err=errRs, multithread=TRUE)
-```
-
-
-#faire l'allignement des R1 et R2
-```{r}
-mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, minOverlap = 1, verbose=TRUE)
-head(mergers[[1]])
-```
-
-#créer table d'observation des séquences :
-```{r}
-seqtabAll <- makeSequenceTable(mergers[!grepl("Mock", names(mergers))])
-table(nchar(getSequences(seqtabAll)))
-#on importe toutes les séquences de la table sauf celle Mock (car est une séquence artificielle introduite pour vérifier que ça marche)
-#deuxième ligne = nombre de caractères 
-#troisième ligne = nombre de séquences qui ont ce nombre de caractères 
-#permet de vérifier que l'allignement est bien fait
-
-```
-
-
-#enlever les chimères = séquences avec un bout de séquence d'une bactérie et un bout d'une autre bactérie , se produit pendant la PCR lorsque l'ARNpol se décroche avant la fin 
-```{r}
-seqtab.nochim <- removeBimeraDenovo(seqtabAll, method="consensus", multithread=TRUE, verbose=TRUE)
-dim(seqtab.nochim)
-```
-
-```{r}
-sum(seqtab.nochim)/sum(seqtabAll)
-```
-
-#Track reads through the pipeline
-```{r}
-getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
-colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
-rownames(track) <- sample.names
-head(track)
-```
-
-
-#annotation taxonomique
-```{bash, include=TRUE, eval=FALSE}
-#1-télécharger fichier
-wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
-```
-
-```{r}
-#assigner taxo
-taxa <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_train_set.fa.gz?download=1", multithread=TRUE)
-```
-
-```{r}
-taxa.print <- taxa 
-rownames(taxa.print) <- NULL
-head(taxa.print)
-```
-
-```{bash, include=TRUE, eval=TRUE}
-wget http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData
-```
-
-
-```{r}
-dna <- DNAStringSet(getSequences(seqtab.nochim)) 
-load("SILVA_SSU_r138_2019.RData") 
-ids <- IdTaxa(dna, trainingSet, strand="top", processors=NULL, verbose=FALSE) 
-ranks <- c("domain", "phylum", "class", "order", "family", "genus", "species") 
-taxid <- t(sapply(ids, function(x) {
-        m <- match(ranks, x$rank)
-        taxa <- x$taxon[m]
-        taxa[startsWith(taxa, "unclassified_")] <- NA
-        taxa
-}))
-colnames(taxid) <- ranks; rownames(taxid) <- getSequences(seqtab.nochim)
-```
-
-```{r}
-theme_set(theme_bw())
-```
 
 ```{r}
 samdf <- data.frame(code_name=code_name, sample_type=s_sample_type, localisation=localisation, depth=depth, Temperature=Temperature, pH=pH, oxygen=oxygen)
 ```
+
 ```{r}
-Sample <- c(1:10)
+Samples <- c(1:10)
 Localisation <- c(2:11)
 Temperatures <-
 Profondeur <-
 Oxygen <-
 pH <-
 
-tableau <- data.frame(code_name=code_name, sample_type=s_sample_type, localisation=localisation, depth=depth, Temperature,                
+tableau <- data.frame(Samples, Localisation, Temperatures, Profondeur, Oxygen, pH)            
 ```
 
 ```{r}
@@ -154,93 +35,207 @@ depth <- as.character(sapply(strsplit(samples.out, "_"), `[`, 4))
 Temperature <- as.character(sapply(strsplit(samples.out, "_"), `[`, 5))
 pH <- as.character(sapply(strsplit(samples.out, "_"), `[`, 6))
 oxygen <- as.character(sapply(strsplit(samples.out, "_"), `[`, 7))
-
-
 samdf <- data.frame(code_name=code_name, sample_type=s_sample_type, localisation=localisation, depth=depth, Temperature=Temperature, pH=pH, oxygen=oxygen)
 
-samdf$sample_type <- "fish"
-samdf$sample_type[c(4,7,8,11,12,17,18,22,23,28,29,32,33,37,39)] <- "sediment"
-samdf$sample_type[c(6,9,10,13:15,19:21,24:26,30,31,34:36,40,41)] <- "water"
-samdf$code_name[1:61]<-c("VB1-10","VB1-9","VB1-8","WSWcontrol","VB1-7","WS9W","WS9K","WS9","WWS9","WS8W","WS8K","WS8","WWS8","WWS7","WS6W","VB1-6","WS6K","WS6","DWWS6","WWS6","WS5W","WS5K","WS5","DWWS5","WWS5","WS3W","VB1-5","WS3K","WS3","WWS3","WS2W","WS2K","WS2","DWWS2","WWS2","WS1W","WS1K","VB1-4","WS1","DWWS1","WWS1","VB2-27","VB2-26","VB2-25","VB2-24","VB2-23","VB2-22","VB2-21","VB1-3","VB2-20","VB2-19","VB2-18","VB2-17","VB2-16","VB2-15","VB1-14","VB1-13","VB1-12","VB1-11","VB1-2","VB1-1")
+Samples <- "fish"
+Samples[c(4,7,8,11,12,17,18,22,23,28,29,32,33,37,39)] <- "sediment"
+Samples[c(6,9,10,13:15,19:21,24:26,30,31,34:36,40,41)] <- "water"
+code_name[1:61]<-c("VB1-10","VB1-9","VB1-8","WSWcontrol","VB1-7","WS9W","WS9K","WS9","WWS9","WS8W","WS8K","WS8","WWS8","WWS7","WS6W","VB1-6","WS6K","WS6","DWWS6","WWS6","WS5W","WS5K","WS5","DWWS5","WWS5","WS3W","VB1-5","WS3K","WS3","WWS3","WS2W","WS2K","WS2","DWWS2","WWS2","WS1W","WS1K","VB1-4","WS1","DWWS1","WWS1","VB2-27","VB2-26","VB2-25","VB2-24","VB2-23","VB2-22","VB2-21","VB1-3","VB2-20","VB2-19","VB2-18","VB2-17","VB2-16","VB2-15","VB1-14","VB1-13","VB1-12","VB1-11","VB1-2","VB1-1")
 
 
 #Localisation
-samdf$localisation <- "lake water"
-samdf$localisation[samdf$code_name > "WS1"] <- "Edremit"
-samdf$localisation[samdf$code_name > "WS2"] <- "Ergil-1"
-samdf$localisation[samdf$code_name > "WS3"] <- "Ergil-2"
-samdf$localisation[samdf$code_name > "WS5"] <- "Gevaş"
-samdf$localisation[samdf$code_name > "WS6"] <- "Gevaş-Tatvan"
-samdf$localisation[samdf$code_name > "WS7"] <- "Gevaş-DSİ-1"
-samdf$localisation[samdf$code_name > "WS8"] <- "Gevaş-DSİ-2"
-samdf$localisation[samdf$code_name > "WS9"] <- "Akdamar"
+Localisation <- "lake water"
+Localisation[samdf$code_name > "WS1"] <- "Edremit"
+Localisation[samdf$code_name > "WS2"] <- "Ergil-1"
+Localisation[samdf$code_name > "WS3"] <- "Ergil-2"
+Localisation[samdf$code_name > "WS5"] <- "Gevaş"
+Localisation[samdf$code_name > "WS6"] <- "Gevaş-Tatvan"
+Localisation[samdf$code_name > "WS7"] <- "Gevaş-DSİ-1"
+Localisation[samdf$code_name > "WS8"] <- "Gevaş-DSİ-2"
+Localisation[samdf$code_name > "WS9"] <- "Akdamar"
 #samdf$localisation[samdf$code_name > "VB1-"] <- "Edremit"
 #samdf$localisation[samdf$code_name > "VB2-"] <- "Gevaş-İnköy"
 
 #Temperatures
-samdf$Temperature <- "6.1"
-samdf$Temperature[samdf$localisation > "Ergil-1"] <- "9.2"
-samdf$Temperature[samdf$localisation > "Ergil-2"] <- "8.1"
-samdf$Temperature[samdf$localisation > "Gevaş"] <- "7.8"
-samdf$Temperature[samdf$localisation > "Gevaş-Tatvan"] <- "5.5"
-samdf$Temperature[samdf$localisation > "Gevaş-DSİ-1"] <- "5.5"
-samdf$Temperature[samdf$localisation > "Gevaş-DSİ-2"] <- "4.7"
-samdf$Temperature[samdf$localisation > "Akdamar"] <- "6.4"
+Temperature <- "6.1"
+Temperature[samdf$localisation > "Ergil-1"] <- "9.2"
+Temperature[samdf$localisation > "Ergil-2"] <- "8.1"
+Temperature[samdf$localisation > "Gevaş"] <- "7.8"
+Temperature[samdf$localisation > "Gevaş-Tatvan"] <- "5.5"
+Temperature[samdf$localisation > "Gevaş-DSİ-1"] <- "5.5"
+Temperature[samdf$localisation > "Gevaş-DSİ-2"] <- "4.7"
+Temperature[samdf$localisation > "Akdamar"] <- "6.4"
 
 
 #profondeur
-samdf$depth<- "7-10"
-samdf$depth[samdf$localisation > "Ergil-1"] <- "0-1"
-samdf$depth[samdf$localisation > "Ergil-2"] <- "0-1"
-samdf$depth[samdf$localisation > "Gevaş"] <- "7-10"
-samdf$depth[samdf$localisation > "Gevaş-Tatvan"] <- "7-10"
-samdf$depth[samdf$localisation > "Gevaş-DSİ-1"] <- "7-10"
-samdf$depth[samdf$localisation > "Gevaş-DSİ-2"] <- "0-1"
-samdf$depth[samdf$localisation > "Akdamar"] <- "0-1"
+Profondeur<- "7-10"
+Profondeur[samdf$localisation > "Ergil-1"] <- "0-1"
+Profondeur[samdf$localisation > "Ergil-2"] <- "0-1"
+Profondeur[samdf$localisation > "Gevaş"] <- "7-10"
+Profondeur[samdf$localisation > "Gevaş-Tatvan"] <- "7-10"
+Profondeur[samdf$localisation > "Gevaş-DSİ-1"] <- "7-10"
+Profondeur[samdf$localisation > "Gevaş-DSİ-2"] <- "0-1"
+Profondeur[samdf$localisation > "Akdamar"] <- "0-1"
 
 #oxygen
-samdf$oxygen <- "4"
-samdf$oxygen[samdf$localisation > "Ergil-1"] <- "4.2"
-samdf$oxygen[samdf$localisation > "Ergil-2"] <- "4.2"
-samdf$oxygen[samdf$localisation > "Gevaş (pier)"] <- "4.1"
-samdf$oxygen[samdf$localisation > "Gevaş"] <- "4.1"
-samdf$oxygen[samdf$localisation > "Gevaş-Tatvan"] <- "4.1"
-samdf$oxygen[samdf$localisation > "Gevaş-DSİ-1"] <- "4"
-samdf$oxygen[samdf$localisation > "Gevaş-DSİ-2"] <- "4"
-samdf$oxygen[samdf$localisation > "Akdamar"] <- "3.9"
+Oxygen <- "4"
+Oxygen[samdf$localisation > "Ergil-1"] <- "4.2"
+Oxygen[samdf$localisation > "Ergil-2"] <- "4.2"
+Oxygen[samdf$localisation > "Gevaş (pier)"] <- "4.1"
+Oxygen[samdf$localisation > "Gevaş"] <- "4.1"
+Oxygen[samdf$localisation > "Gevaş-Tatvan"] <- "4.1"
+Oxygen[samdf$localisation > "Gevaş-DSİ-1"] <- "4"
+Oxygen[samdf$localisation > "Gevaş-DSİ-2"] <- "4"
+Oxygen[samdf$localisation > "Akdamar"] <- "3.9"
 
 #pH
-samdf$pH <- "9.55"
-samdf$pH[samdf$localisation > "Ergil-1"] <- "9.57"
-samdf$pH[samdf$localisation > "Ergil-2"] <- "7.90"
-samdf$pH[samdf$localisation > "Gevaş"] <- "9.38"
-samdf$pH[samdf$localisation > "Tatvan"] <- "9.56"
-samdf$pH[samdf$localisation > "Gevaş-DSİ-1"] <- "9.56"
-samdf$pH[samdf$localisation > "Gevaş-DSİ-2"] <- "9.56"
-samdf$pH[samdf$localisation > "Akdamar"] <- "9.56"
+pH <- "9.55"
+pH[samdf$localisation > "Ergil-1"] <- "9.57"
+pH[samdf$localisation > "Ergil-2"] <- "7.90"
+pH[samdf$localisation > "Gevaş"] <- "9.38"
+pH[samdf$localisation > "Tatvan"] <- "9.56"
+pH[samdf$localisation > "Gevaş-DSİ-1"] <- "9.56"
+pH[samdf$localisation > "Gevaş-DSİ-2"] <- "9.56"
+pH[samdf$localisation > "Akdamar"] <- "9.56"
 
-rownames(samdf) <- samples.out
+Samples <- c(1:10)
+Localisation <- c(2:11)
+Temperatures <-
+Profondeur <-
+Oxygen <-
+pH <-
+
+samdf <- data.frame(Samples, Localisation, Temperatures, Profondeur, Oxygen, pH) 
+```
+
+```{r}
+Run <- c("SRR14616918", "SRR14616919", "SRR14616920", "SRR14616921", "SRR14616922", "SRR14616923", "SRR14616924", "SRR14616925", "SRR14616926", "SRR14616927", "SRR14616928", "SRR14616929", "SRR14616930", "SRR14616931", "SRR14616932", "SRR14616933", "SRR14616934", "SRR14616935", "SRR14616936", "SRR14616937", "SRR14616938", "SRR14616939", "SRR14616940", "SRR14616941", "SRR14616942", "SRR14616943", "SRR14616944", "SRR14616945", "SRR14616946", "SRR14616947", "SRR14616948", "SRR14616949", "SRR14616950", "SRR14616951", "SRR14616952", "SRR14616953", "SRR14616954", "SRR14616955", "SRR14616956", "SRR14616957", "SRR14616958", "SRR14616959", "SRR14616960", "SRR14616961", "SRR14616962", "SRR14616963", "SRR14616964", "SRR14616965", "SRR14616966", "SRR14616967", "SRR14616968", "SRR14616969", "SRR14616970", "SRR14616971", "SRR14616972", "SRR14616973", "SRR14616974", "SRR14616975", "SRR14616976", "SRR14616977", "SRR14616978")
+
+code_name <- "XXXXXX"
+code_name[Run > "SRR14616918"] <- "VB-10"
+code_name[Run > "SRR14616919"] <- "VB-9"
+code_name[Run > "SRR14616920"] <- "VB-8"
+code_name[Run > "SRR14616921"] <- "WSWcontrol"
+code_name[Run > "SRR14616922"] <- "VB-7"
+code_name[Run > "SRR14616923"] <- "WS9W"
+code_name[Run > "SRR14616924"] <- "WS9K"
+code_name[Run > "SRR14616925"] <- "WS9"
+code_name[Run > "SRR14616926"] <- "WWS9"
+code_name[Run > "SRR14616927"] <- "WS8W"
+code_name[Run > "SRR14616928"] <- "WS8K"
+code_name[Run > "SRR14616929"] <- "WS8"
+code_name[Run > "SRR14616930"] <- "WWS8"
+code_name[Run > "SRR14616931"] <- "WWS7"
+code_name[Run > "SRR14616932"] <- "WS6W"
+code_name[Run > "SRR14616933"] <- "VB-6"
+code_name[Run > "SRR14616934"] <- "WS6K"
+code_name[Run > "SRR14616935"] <- "WS6"
+code_name[Run > "SRR14616936"] <- "DWWS6"
+code_name[Run > "SRR14616937"] <- "WWS6"
+code_name[Run > "SRR14616938"] <- "WS5W"
+code_name[Run > "SRR14616939"] <- "WS5K"
+code_name[Run > "SRR14616940"] <- "WS5"
+code_name[Run > "SRR14616941"] <- "DWWS5"
+code_name[Run > "SRR14616942"] <- "WWS5"
+code_name[Run > "SRR14616943"] <- "WS3W"
+code_name[Run > "SRR14616944"] <- "VB-5"
+code_name[Run > "SRR14616945"] <- "WS3K"
+code_name[Run > "SRR14616946"] <- "WS3"
+code_name[Run > "SRR14616947"] <- "WWS3"
+code_name[Run > "SRR14616948"] <- "WS2W"
+code_name[Run > "SRR14616949"] <- "WS2K"
+code_name[Run > "SRR14616950"] <- "WS2"
+code_name[Run > "SRR14616951"] <- "DWWS2"
+code_name[Run > "SRR14616952"] <- "WWS2"
+code_name[Run > "SRR14616953"] <- "WS1W"
+code_name[Run > "SRR14616954"] <- "WS1K"
+code_name[Run > "SRR14616955"] <- "VB-4"
+code_name[Run > "SRR14616956"] <- "WS1"
+code_name[Run > "SRR14616957"] <- "DWWS1"
+code_name[Run > "SRR14616958"] <- "WWS1"
+code_name[Run > "SRR14616959"] <- "VB-27"
+code_name[Run > "SRR14616960"] <- "VB-26"
+code_name[Run > "SRR14616961"] <- "VB-25"
+code_name[Run > "SRR14616962"] <- "VB-24"
+code_name[Run > "SRR14616963"] <- "VB-23"
+code_name[Run > "SRR14616964"] <- "VB-22"
+code_name[Run > "SRR14616965"] <- "VB-21"
+code_name[Run > "SRR14616966"] <- "VB-3"
+code_name[Run > "SRR14616967"] <- "VB-20"
+code_name[Run > "SRR14616968"] <- "VB-19"
+code_name[Run > "SRR14616969"] <- "VB-18"
+code_name[Run > "SRR14616970"] <- "VB-17"
+code_name[Run > "SRR14616971"] <- "VB-16"
+code_name[Run > "SRR14616972"] <- "VB-15"
+code_name[Run > "SRR14616973"] <- "VB-14"
+code_name[Run > "SRR14616974"] <- "VB-13"
+code_name[Run > "SRR14616975"] <- "VB-12"
+code_name[Run > "SRR14616976"] <- "VB-11"
+code_name[Run > "SRR14616977"] <- "VB-2"
+code_name[Run > "SRR14616978"] <- "VB-1"
+
+Samples <- "Fish"
+Samples[code_name > "WSWcontrol"] <- "Sediment"
+Samples[code_name > "WS9W"] <- "Freshwater"
+Samples[code_name > "WS9K"] <- "Sediment"
+Samples[code_name > "WS9"] <- "Sediment"
+Samples[code_name > "WWS9"] <- "Freshwater"
+Samples[code_name > "WS8W"] <- "Freshwater"
+Samples[code_name > "WS8K"] <- "Sediment"
+Samples[code_name > "WS8"] <- "Sediment"
+Samples[code_name > "WWS8"] <- "Freshwater"
+Samples[code_name > "WWS7"] <- "Freshwater"
+Samples[code_name > "WS6W"] <- "Freshwater"
+Samples[code_name > "WS6K"] <- "Sediment"
+Samples[code_name > "WS6"] <- "Sediment"
+Samples[code_name > "DWWS6"] <- "Freshwater"
+Samples[code_name > "WWS6"] <- "Freshwater"
+Samples[code_name > "WS5W"] <- "Freshwater"
+Samples[code_name > "WS5K"] <- "Sediment"
+Samples[code_name > "WS5"] <- "Sediment"
+Samples[code_name > "DWWS5"] <- "Freshwater"
+Samples[code_name > "WWS5"] <- "Freshwater"
+Samples[code_name > "WS3W"] <- "Freshwater"
+Samples[code_name > "WS3K"] <- "Sediment"
+Samples[code_name > "WS3"] <- "Sediment"
+Samples[code_name > "WWS3"] <- "Freshwater"
+Samples[code_name > "WS2W"] <- "Freshwater"
+Samples[code_name > "WS2K"] <- "Sediment"
+Samples[code_name > "WS2"] <- "Sediment"
+Samples[code_name > "DWWS2"] <- "Freshwater"
+Samples[code_name > "WWS2"] <- "Freshwater"
+Samples[code_name > "WS1W"] <- "Freshwater"
+Samples[code_name > "WS1K"] <- "Sediment"
+Samples[code_name > "WS1"] <- "Sediment"
+Samples[code_name > "DWWS1"] <- "Freshwater"
+Samples[code_name > "WWS1"] <- "Freshwater"
+
+
+
+
+Samples <- "fish"
+#Samples[c(4,7,8,11,12,17,18,22,23,28,29,32,33,37,39)] <- "sediment"
+#Samples[c(6,9,10,13:15,19:21,24:26,30,31,34:36,40,41)] <- "water"
+
+
+Samples <- "fish"
+Samples[code_name > "WS1"] <- "Edremit"
+Samples[code_name > "WS2"] <- "Ergil-1"
+
+#Localisation
+Localisation <- "lake water"
+Localisation[code_name > "WS1"] <- "Edremit"
+Localisation[code_name > "WS2"] <- "Ergil-1"
+Localisation[code_name > "WS3"] <- "Ergil-2"
+Localisation[code_name > "WS5"] <- "Gevaş"
+Localisation[code_name > "WS6"] <- "Gevaş-Tatvan"
+Localisation[code_name > "WS7"] <- "Gevaş-DSİ-1"
+Localisation[code_name > "WS8"] <- "Gevaş-DSİ-2"
+Localisation[code_name > "WS9"] <- "Akdamar"
+
+samdf <- data.frame(Run, code_name, Samples, Localisation) 
 print(samdf)
 ```
-```{r}
-vecteur1 <- c(1:10) ; vecteur2 <- c(2:11)
-tableau <- data.frame(vecteur1, vecteur2)
-```
-```{r}
-# en reprenant l'exemple ci-dessus
-colnames(tableau) <- c("V1","V2")
-# Si le tableau s'appelle data, on peut renommer ses colonnes
-data <- colnames(c("nouveau titre","titre nouveau"))
-# exemple
-data <- data.frame(t3=1:6, titre=rnorm(6)) ; data
-colnames(data) = c("nouveau titre","titre nouveau") ; data
-# On peut aussi simplifier le nom des colonnes du tableau pour pouvoir appeler le contenu d'une colonne sans utiliser le nom du fichier.
-# Pour un tableau de nom tablo et une colonne nommée Age
-Age = tablo$Age
-# Exemple
-tablo <- data.frame(Age=rpois(20,20), Taille=rnorm(20,170))
-Age = tablo$Age ; Taille = tablo$Taille
-Age ; Taille 
-```
+
 
 

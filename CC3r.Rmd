@@ -81,12 +81,10 @@ names(filtRs) <- sample.names
 
 ```{r}
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, trimLeft=c(50,55),
-              maxN=0, maxEE=c(55,55), truncQ=2, rm.phix=TRUE,
+              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=TRUE)
 head(out)
 ```
-
-
 
 # Learn the Error Rates
 
@@ -124,11 +122,12 @@ dadaRs[[1]]
 # Merge paired reads
 
 ```{r}
-mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, minOverlap=10, verbose=TRUE)
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, justConcatenate=TRUE, verbose=TRUE)
 head(mergers[[1]])
 ```
 
 # Construct sequence table
+
 
 ```{r}
 seqtab <- makeSequenceTable(mergers)
@@ -175,3 +174,241 @@ taxa.print <- taxa
 rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
+
+# Handoff to phyloseq
+
+```{r}
+theme_set(theme_bw())
+```
+
+```{r}
+samples.out <- rownames(seqtab.nochim)
+
+code_name <- "XXXXXX"
+code_name[samples.out == "SRR14616918"] <- "VB1-10"
+code_name[samples.out == "SRR14616919"] <- "VB1-9"
+code_name[samples.out == "SRR14616920"] <- "VB1-8"
+code_name[samples.out == "SRR14616921"] <- "WSWcontrol"
+code_name[samples.out == "SRR14616922"] <- "VB1-7"
+code_name[samples.out == "SRR14616923"] <- "WS9W"
+code_name[samples.out == "SRR14616924"] <- "WS9K"
+code_name[samples.out == "SRR14616925"] <- "WS9"
+code_name[samples.out == "SRR14616926"] <- "WWS9"
+code_name[samples.out == "SRR14616927"] <- "WS8W"
+code_name[samples.out == "SRR14616928"] <- "WS8K"
+code_name[samples.out == "SRR14616929"] <- "WS8"
+code_name[samples.out == "SRR14616930"] <- "WWS8"
+code_name[samples.out == "SRR14616931"] <- "WWS7"
+code_name[samples.out == "SRR14616932"] <- "WS6W"
+code_name[samples.out == "SRR14616933"] <- "VB1-6"
+code_name[samples.out == "SRR14616934"] <- "WS6K"
+code_name[samples.out == "SRR14616935"] <- "WS6"
+code_name[samples.out == "SRR14616936"] <- "DWWS6"
+code_name[samples.out == "SRR14616937"] <- "WWS6"
+code_name[samples.out == "SRR14616938"] <- "WS5W"
+code_name[samples.out == "SRR14616939"] <- "WS5K"
+code_name[samples.out == "SRR14616940"] <- "WS5"
+code_name[samples.out == "SRR14616941"] <- "DWWS5"
+code_name[samples.out == "SRR14616942"] <- "WWS5"
+code_name[samples.out == "SRR14616943"] <- "WS3W"
+code_name[samples.out == "SRR14616944"] <- "VB1-5"
+code_name[samples.out == "SRR14616945"] <- "WS3K"
+code_name[samples.out == "SRR14616946"] <- "WS3"
+code_name[samples.out == "SRR14616947"] <- "WWS3"
+code_name[samples.out == "SRR14616948"] <- "WS2W"
+code_name[samples.out == "SRR14616949"] <- "WS2K"
+code_name[samples.out == "SRR14616950"] <- "WS2"
+code_name[samples.out == "SRR14616951"] <- "DWWS2"
+code_name[samples.out == "SRR14616952"] <- "WWS2"
+code_name[samples.out == "SRR14616953"] <- "WS1W"
+code_name[samples.out == "SRR14616954"] <- "WS1K"
+code_name[samples.out == "SRR14616955"] <- "VB1-4"
+code_name[samples.out == "SRR14616956"] <- "WS1"
+code_name[samples.out == "SRR14616957"] <- "DWWS1"
+code_name[samples.out == "SRR14616958"] <- "WWS1"
+code_name[samples.out == "SRR14616959"] <- "VB2-27"
+code_name[samples.out == "SRR14616960"] <- "VB2-26"
+code_name[samples.out == "SRR14616961"] <- "VB2-25"
+code_name[samples.out == "SRR14616962"] <- "VB2-24"
+code_name[samples.out == "SRR14616963"] <- "VB2-23"
+code_name[samples.out == "SRR14616964"] <- "VB2-22"
+code_name[samples.out == "SRR14616965"] <- "VB2-21"
+code_name[samples.out == "SRR14616966"] <- "VB1-3"
+code_name[samples.out == "SRR14616967"] <- "VB-20"
+code_name[samples.out == "SRR14616968"] <- "VB2-19"
+code_name[samples.out == "SRR14616969"] <- "VB2-18"
+code_name[samples.out == "SRR14616970"] <- "VB2-17"
+code_name[samples.out == "SRR14616971"] <- "VB2-16"
+code_name[samples.out == "SRR14616972"] <- "VB2-15"
+code_name[samples.out == "SRR14616973"] <- "VB1-14"
+code_name[samples.out == "SRR14616974"] <- "VB1-13"
+code_name[samples.out == "SRR14616975"] <- "VB1-12"
+code_name[samples.out == "SRR14616976"] <- "VB1-11"
+code_name[samples.out == "SRR14616977"] <- "VB1-2"
+code_name[samples.out == "SRR14616978"] <- "VB1-1"
+
+
+Samples <- "Fish"
+Samples[1:61]<- "Fish"
+Samples[code_name == "WSWcontrol"] <- "Sediment"
+Samples[code_name == "WS9W"] <- "Freshwater"
+Samples[code_name == "WS9K"] <- "Sediment"
+Samples[code_name == "WS9"] <- "Sediment"
+Samples[code_name == "WWS9"] <- "Freshwater"
+Samples[code_name == "WS8W"] <- "Freshwater"
+Samples[code_name == "WS8K"] <- "Sediment"
+Samples[code_name == "WS8"] <- "Sediment"
+Samples[code_name == "WWS8"] <- "Freshwater"
+Samples[code_name == "WWS7"] <- "Freshwater"
+Samples[code_name == "WS6W"] <- "Freshwater"
+Samples[code_name == "WS6K"] <- "Sediment"
+Samples[code_name == "WS6"] <- "Sediment"
+Samples[code_name == "DWWS6"] <- "Freshwater"
+Samples[code_name == "WWS6"] <- "Freshwater"
+Samples[code_name == "WS5W"] <- "Freshwater"
+Samples[code_name == "WS5K"] <- "Sediment"
+Samples[code_name == "WS5"] <- "Sediment"
+Samples[code_name == "DWWS5"] <- "Freshwater"
+Samples[code_name == "WWS5"] <- "Freshwater"
+Samples[code_name == "WS3W"] <- "Freshwater"
+Samples[code_name == "WS3K"] <- "Sediment"
+Samples[code_name == "WS3"] <- "Sediment"
+Samples[code_name == "WWS3"] <- "Freshwater"
+Samples[code_name == "WS2W"] <- "Freshwater"
+Samples[code_name == "WS2K"] <- "Sediment"
+Samples[code_name == "WS2"] <- "Sediment"
+Samples[code_name == "DWWS2"] <- "Freshwater"
+Samples[code_name == "WWS2"] <- "Freshwater"
+Samples[code_name == "WS1W"] <- "Freshwater"
+Samples[code_name == "WS1K"] <- "Sediment"
+Samples[code_name == "WS1"] <- "Sediment"
+Samples[code_name == "DWWS1"] <- "Freshwater"
+Samples[code_name == "WWS1"] <- "Freshwater"
+
+
+#Localisation
+Localisation <- "lake water"
+Localisation[1:61] <- "lake water"
+Localisation[str_detect(code_name, pattern = "WS1")] <- "Edremit"
+Localisation[str_detect(code_name, pattern = "WS2")] <- "Ergil-1"
+Localisation[str_detect(code_name, pattern = "WS3")] <- "Ergil-2"
+Localisation[str_detect(code_name, pattern = "WS5")] <- "Gevaş"
+Localisation[str_detect(code_name, pattern = "WS6")] <- "Gevaş-Tatvan"
+Localisation[str_detect(code_name, pattern = "WS7")] <- "Gevaş-DSİ-1"
+Localisation[str_detect(code_name, pattern = "WS8")] <- "Gevaş-DSİ-2"
+Localisation[str_detect(code_name, pattern = "WS9")] <- "Akdamar"
+Localisation[str_detect(code_name, pattern = "VB1")] <- "Edremit"
+Localisation[str_detect(code_name, pattern = "VB2")] <- "Gevaş-İnköy"
+
+
+
+#Temperatures
+Temperature <- "6.1"
+Temperature[1:61] <- "6.1"
+Temperature[Localisation == "Ergil-1"] <- "9.2"
+Temperature[Localisation == "Ergil-2"] <- "8.1"
+Temperature[Localisation == "Gevaş"] <- "7.8"
+Temperature[Localisation == "Gevaş-Tatvan"] <- "5.5"
+Temperature[Localisation == "Gevaş-DSİ-1"] <- "5.5"
+Temperature[Localisation == "Gevaş-DSİ-2"] <- "4.7"
+Temperature[Localisation == "Akdamar"] <- "6.4"
+Temperature[Localisation == "Gevaş-İnköy"] <- "?"
+
+
+#profondeur
+Profondeur <- "7-10"
+Profondeur[1:61] <- "7-10"
+Profondeur[Localisation == "Ergil-1"] <- "0-1"
+Profondeur[Localisation == "Ergil-2"] <- "0-1"
+Profondeur[Localisation == "Gevaş"] <- "7-10"
+Profondeur[Localisation == "Gevaş-Tatvan"] <- "7-10"
+Profondeur[Localisation == "Gevaş-DSİ-1"] <- "7-10"
+Profondeur[Localisation == "Gevaş-DSİ-2"] <- "0-1"
+Profondeur[Localisation == "Akdamar"] <- "0-1"
+Profondeur[Localisation == "Gevaş-İnköy"] <- "?"
+
+#oxygen
+Oxygen <- "4"
+Oxygen[1:61] <- "4"
+Oxygen[Localisation == "Ergil-1"] <- "4.2"
+Oxygen[Localisation == "Ergil-2"] <- "4.2"
+Oxygen[Localisation == "Gevaş (pier)"] <- "4.1"
+Oxygen[Localisation == "Gevaş"] <- "4.1"
+Oxygen[Localisation == "Gevaş-Tatvan"] <- "4.1"
+Oxygen[Localisation == "Gevaş-DSİ-1"] <- "4"
+Oxygen[Localisation == "Gevaş-DSİ-2"] <- "4"
+Oxygen[Localisation == "Akdamar"] <- "3.9"
+Oxygen[Localisation == "Gevaş-İnköy"] <- "?"
+
+#pH
+pH <- "9.55"
+pH[1:61] <- "9.55"
+pH[Localisation == "Ergil-1"] <- "9.57"
+pH[Localisation == "Ergil-2"] <- "7.90"
+pH[Localisation == "Gevaş"] <- "9.38"
+pH[Localisation == "Tatvan"] <- "9.56"
+pH[Localisation == "Gevaş-DSİ-1"] <- "9.56"
+pH[Localisation == "Gevaş-DSİ-2"] <- "9.56"
+pH[Localisation == "Akdamar"] <- "9.56"
+pH[Localisation == "Gevaş-İnköy"] <- "?"
+
+
+
+samdf <- data.frame(code_name, Samples, Localisation, Temperature, Profondeur, Oxygen, pH) 
+rownames(samdf) <- samples.out
+print(samdf)
+```
+
+
+```{r}
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               sample_data(samdf), 
+               tax_table(taxa))
+```
+
+```{r}
+dna <- Biostrings::DNAStringSet(taxa_names(ps))
+names(dna) <- taxa_names(ps)
+ps <- merge_phyloseq(ps, dna)
+taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
+ps
+```
+
+```{r}
+plot_richness(ps, x="Samples", measures=c("Shannon", "Simpson"), color="pH")
+```
+
+```{r}
+ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
+```
+
+```{r}
+plot_ordination(ps.prop, ord.nmds.bray, color="Localisation", title="Bray PCoA", shape="pH")
+```
+
+```{r}
+ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray2 <- ordinate(ps.prop, method="PCoA", distance="jaccard")
+```
+
+```{r}
+plot_ordination(ps.prop2, ord.nmds.bray2, color="code_name", title="Jaccard PCoA", shape="Localisation")
+```
+
+```{r}
+ps.prop3 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.coa.bray <- ordinate(ps.prop3, method="CoA", distance="jaccard")
+```
+
+```{r}
+plot_ordination(ps.prop3, ord.coa.bray, color="Localisation", title="CoA")
+```
+
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="code_name", fill="Class") + facet_wrap(~Localisation, scales="free_x")
+```
+

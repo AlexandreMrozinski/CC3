@@ -879,77 +879,78 @@ ps
 plot_richness(ps, x="Samples", measures=c("Shannon", "Simpson"), color="code_name")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-28-1.png)<!-- --> \#### Les
-echantillons sont plutot regroupés, neanmoins ceux provenant des
-poissons sont légèrement a part des autres. Les populations bactiriennes
-sont pour la plupart communes mais varient légrement pour les poissons.
+![](CC3r_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+
+#### Les echantillons sont plutot regroupés, neanmoins ceux provenant des poissons sont légèrement a part des autres. Les populations bactiriennes sont pour la plupart communes mais varient légrement pour les poissons.
 
 ``` r
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.jac.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
-plot_ordination(ps.prop, ord.jac.bray, color="Samples", title="Bray PCoA")
+plot_ordination(ps.prop, ord.jac.bray, color="Samples", title="Bray Curtis PCoA: mise en évidence du type de prélèvement")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-29-1.png)<!-- --> \#### Les
-echantillons provenant des poissons sont regroupés entre eux. Ceux
-provenant de la colonne d’eau et des sédiments sont entre eux et formes
-2 clusters distincts.
+![](CC3r_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+#### Les echantillons provenant des poissons sont regroupés entre eux. Ceux provenant de la colonne d’eau et des sédiments sont entre eux et formes 2 clusters distincts.
 
 ``` r
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray2 <- ordinate(ps.prop2, method="PCoA", distance="bray")
-plot_ordination(ps.prop2, ord.bray.bray2, color="Localisation", title="JBray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop2, ord.bray.bray2, color="Localisation", title="Bray Curtis PCoA: mise en évidence du type et localisation de prélèvement ", shape="Samples")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-30-1.png)<!-- --> \#### La
-localisation d’echantillonage ne semble par etre un paramètre
-influcencant les populations.
+![](CC3r_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+#### La localisation d’echantillonage ne semble par etre un paramètre influcencant les populations.
 
 ``` r
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray2 <- ordinate(ps.prop2, method="PCoA", distance="bray")
-plot_ordination(ps.prop2, ord.bray.bray2, color="Oxygen", title="JBray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop2, ord.bray.bray2, color="Oxygen", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de l'oxygen", shape="Samples")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-31-1.png)<!-- --> \#### Le taux
-d’oxygene ne semble par etre un paramètre influcencant les populations.
+![](CC3r_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+#### Le taux d’oxygene ne semble par etre un paramètre influcencant les populations.
 
 ``` r
 ps.prop3 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray3 <- ordinate(ps.prop3, method="PCoA", distance="bray")
-plot_ordination(ps.prop3, ord.bray.bray3, color="Samples", title="Bray Curtis PCoA", shape="Temperature")
+plot_ordination(ps.prop3, ord.bray.bray3, color="Samples", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de la température", shape="Temperature")
 ```
 
     ## Warning: The shape palette can deal with a maximum of 6 discrete values because
     ## more than 6 becomes difficult to discriminate; you have 8. Consider
     ## specifying shapes manually if you must have them.
 
-![](CC3r_files/figure-gfm/unnamed-chunk-32-1.png)<!-- --> \#### Echelle
-de temperature trop grande, interprétation avec \> et \< a 7 degré.
+![](CC3r_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+
+#### Echelle de temperature trop grande, interprétation avec \> et \< a 7 degré.
 
 ``` r
 ps.prop4 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray4 <- ordinate(ps.prop4, method="PCoA", distance="bray")
-plot_ordination(ps.prop4, ord.bray.bray4, color="Temp", title="Bray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop4, ord.bray.bray4, color="Temp", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de la température (>< 7°C)", shape="Samples")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-33-1.png)<!-- --> \#### Les
-echantillons de temperatures inconnues se regreoupe avec ceux \<7. La
-variation de plus ou moins 7 degré ne semble pas avoir d’impact.
+![](CC3r_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+
+#### Les echantillons de temperatures inconnues se regreoupe avec ceux \<7. La variation de plus ou moins 7 degré ne semble pas avoir d’impact.
 
 ``` r
 ps.prop5 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray5 <- ordinate(ps.prop5, method="PCoA", distance="bray")
-plot_ordination(ps.prop5, ord.bray.bray5, color="pH", title="Bray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop5, ord.bray.bray5, color="pH", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et du pH", shape="Samples")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-34-1.png)<!-- --> \#### Le pH ne
-semble par etre un paramètre influcencant les populations.
+![](CC3r_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+#### Le pH ne semble par etre un paramètre influcencant les populations.
 
 ``` r
 ps.prop6 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray6 <- ordinate(ps.prop6, method="PCoA", distance="bray")
-plot_ordination(ps.prop6, ord.bray.bray6, color="Profondeur", title="Bray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop6, ord.bray.bray6, color="Profondeur", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de la profondeur", shape="Samples")
 ```
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
@@ -963,10 +964,9 @@ ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-36-1.png)<!-- --> \#### Les
-Vibrio sont la famille dominante chez les poissons, dans la colonne
-d’eau et les sédiments. L’abondance est généralement plus élevé chez les
-poissons et au plus faible dans les sédiments.
+![](CC3r_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
+
+#### Les Vibrio sont la famille dominante chez les poissons, dans la colonne d’eau et les sédiments. L’abondance est généralement plus élevé chez les poissons et au plus faible dans les sédiments.
 
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -975,9 +975,9 @@ ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="pH", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-37-1.png)<!-- --> \#### les pH
-extrêmes sembles inhibiter les croissances bactériennes, avec les
-meilleures abondance a pH 9.55-9.56.
+![](CC3r_files/figure-gfm/unnamed-chunk-37-1.png)<!-- -->
+
+#### les pH extrêmes sembles inhibiter les croissances bactériennes, avec les meilleures abondance a pH 9.55-9.56.
 
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -986,9 +986,9 @@ ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Temp", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-38-1.png)<!-- --> \#### Les
-abondances sembles plus fortes avec une température inférieure a 7
-degré.
+![](CC3r_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
+
+#### Les abondances sembles plus fortes avec une température inférieure a 7 degré.
 
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -999,6 +999,8 @@ plot_bar(ps.top20, x="Oxygen", fill="Family") + facet_wrap(~Samples, scales="fre
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
 
+#### Les abondances sembles legrement plus fortes avec un taux d’oxygne de 4-4.1.
+
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
@@ -1006,14 +1008,9 @@ ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Profondeur", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
 
-![](CC3r_files/figure-gfm/unnamed-chunk-40-1.png)<!-- --> \#### pour les
-echantillons de la colonne d’eau et le sédiment, les abondances sont les
-memes en fonction de la profondeur, neanmoins il y a une variation de
-composition avec une présence de Peptostreptococcaceae de 0-1m de
-pronfondeur dans le sédiment. Dans la colonne d’eau présence
-d’Aeormonadaceae de 0-1 mètre de pronfeur, et plus grande abondance de
-Leptotrichiaceae a 7-10 mtre. Chez les poissons plus forte abondance à
-7-10 mtre de profondeur et présence de Streptococcaceae.
+![](CC3r_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+
+#### pour les echantillons de la colonne d’eau et le sédiment, les abondances sont les memes en fonction de la profondeur, neanmoins il y a une variation de composition avec une présence de Peptostreptococcaceae de 0-1m de pronfondeur dans le sédiment. Dans la colonne d’eau présence d’Aeormonadaceae de 0-1 mètre de pronfeur, et plus grande abondance de Leptotrichiaceae a 7-10 mtre. Chez les poissons plus forte abondance à 7-10 mtre de profondeur et présence de Streptococcaceae.
 
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -1024,13 +1021,15 @@ plot_bar(ps.top20, x="Localisation", fill="Family") + facet_wrap(~Samples, scale
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
-#### Les poissons sotn echantillonés uniquement aux localisations Edremit et Gevas-Inkoy. Les abondances bactériennes pour les eaux et les sédiments sont relativements les memes. Uniquement les echantillons provenant de poisson sont largement suppérieurs en terme d’abondance.
+#### Les poissons sont echantillonés uniquement aux localisations Edremit et Gevas-Inkoy. Les abondances bactériennes pour les eaux et les sédiments sont relativements les memes. Uniquement les echantillons provenant de poisson sont largement suppérieurs en terme d’abondance.
 
 ### Conclusion
 
 #### L’alpha et la Beta diversité ne sont réellement influcencé que par l’endroit d’échantillon: poisson, eau ou sédiment. Avec un regroupement précis des echantillon fish et une disperssion groupé de ceux d’eaux et sédiments. Aucun relevé représentatif d’influence du pH, de l’oxygne, de la température ou de la profondeur.
 
 #### Les Vibrio sont majoritaire en toutes conditions. Les plus grandes abondances de microorganismes sont ceux echantillonés dans les poissons, cela peut s’expliquer par l’intéraction des bactéries avec l’organisme hote, et notamment par la présence des bactéries intestinales. Les vibrio sont en effet une famille de bastéries typiques de l’eaux de mer, des estuaires et des intestins des animaux marins. Ceci explique donc leurs présence dans nos echantillons, car ce sont bien des lacs salés qui ont ete analysés.
+
+#### Du fait de l’impossibilité d’overlap les séquences, et de l’utilisation de ‘justConcatenate’, il est possible que ces résultats ne soit pas exacte. Il aurait peut etre été interessant de séquencer une région de 16S plus grande pour possiblement éviter ce soucis. (Je n’ai pas trouvé la solution en terme de code pour regler ceci)
 
 # TEST
 
@@ -1053,22 +1052,20 @@ plyr::ddply(prevdf, "Phylum", function(df1){cbind(mean(df1$Prevalence),sum(df1$P
 
     ##                Phylum        1    2
     ## 1    Actinobacteriota 1.000000   17
-    ## 2        Bacteroidota 1.000000   89
+    ## 2        Bacteroidota 1.000000   88
     ## 3  Caldatribacteriota 1.000000    1
     ## 4    Campylobacterota 1.000000    1
-    ## 5         Chloroflexi 1.000000   16
-    ## 6       Cyanobacteria 1.921569  196
+    ## 5         Chloroflexi 1.000000   20
+    ## 6       Cyanobacteria 1.930693  195
     ## 7        Deinococcota 1.000000    5
-    ## 8    Desulfobacterota 1.040000  156
-    ## 9          Firmicutes 1.266055  414
-    ## 10     Fusobacteriota 1.736842   33
-    ## 11    Gemmatimonadota 1.000000    1
-    ## 12        Myxococcota 1.000000    1
-    ## 13    Patescibacteria 1.000000    3
-    ## 14    Planctomycetota 1.000000    4
-    ## 15     Proteobacteria 2.305857 1063
-    ## 16  Verrucomicrobiota 1.000000    3
-    ## 17              WOR-1 1.000000    1
+    ## 8    Desulfobacterota 1.041958  149
+    ## 9          Firmicutes 1.286154  418
+    ## 10     Fusobacteriota 1.764706   30
+    ## 11    Patescibacteria 1.000000    3
+    ## 12    Planctomycetota 1.000000    2
+    ## 13     Proteobacteria 2.302832 1057
+    ## 14  Verrucomicrobiota 1.000000    3
+    ## 15              WOR-1 1.000000    1
 
 ``` r
 ps1 = subset_taxa(ps)
@@ -1076,10 +1073,10 @@ ps1
 ```
 
     ## phyloseq-class experiment-level object
-    ## otu_table()   OTU Table:         [ 1201 taxa and 61 samples ]
+    ## otu_table()   OTU Table:         [ 1186 taxa and 61 samples ]
     ## sample_data() Sample Data:       [ 61 samples by 8 sample variables ]
-    ## tax_table()   Taxonomy Table:    [ 1201 taxa by 6 taxonomic ranks ]
-    ## refseq()      DNAStringSet:      [ 1201 reference sequences ]
+    ## tax_table()   Taxonomy Table:    [ 1186 taxa by 6 taxonomic ranks ]
+    ## refseq()      DNAStringSet:      [ 1186 reference sequences ]
 
 ``` r
 prevdf1 = subset(prevdf, Phylum %in% get_taxa_unique(ps1, "Phylum"))

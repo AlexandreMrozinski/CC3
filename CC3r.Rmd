@@ -391,53 +391,61 @@ ps
 ```{r}
 plot_richness(ps, x="Samples", measures=c("Shannon", "Simpson"), color="code_name")
 ```
+
 #### Les echantillons sont plutot regroupés, neanmoins ceux provenant des poissons sont légèrement a part des autres. Les populations bactiriennes sont pour la plupart communes mais varient légrement pour les poissons.
 
 ```{r}
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.jac.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
-plot_ordination(ps.prop, ord.jac.bray, color="Samples", title="Bray PCoA")
+plot_ordination(ps.prop, ord.jac.bray, color="Samples", title="Bray Curtis PCoA: mise en évidence du type de prélèvement")
 ```
+
 #### Les echantillons provenant des poissons sont regroupés entre eux. Ceux provenant de la colonne d'eau et des sédiments sont entre eux et formes 2 clusters distincts.
+
 ```{r}
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray2 <- ordinate(ps.prop2, method="PCoA", distance="bray")
-plot_ordination(ps.prop2, ord.bray.bray2, color="Localisation", title="JBray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop2, ord.bray.bray2, color="Localisation", title="Bray Curtis PCoA: mise en évidence du type et localisation de prélèvement ", shape="Samples")
 ```
+
 #### La localisation d'echantillonage ne semble par etre un paramètre influcencant les populations.
 
 ```{r}
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray2 <- ordinate(ps.prop2, method="PCoA", distance="bray")
-plot_ordination(ps.prop2, ord.bray.bray2, color="Oxygen", title="JBray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop2, ord.bray.bray2, color="Oxygen", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de l'oxygen", shape="Samples")
 ```
+
 #### Le taux d'oxygene ne semble par etre un paramètre influcencant les populations.
 
 ```{r}
 ps.prop3 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray3 <- ordinate(ps.prop3, method="PCoA", distance="bray")
-plot_ordination(ps.prop3, ord.bray.bray3, color="Samples", title="Bray Curtis PCoA", shape="Temperature")
+plot_ordination(ps.prop3, ord.bray.bray3, color="Samples", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de la température", shape="Temperature")
 ```
+
 #### Echelle de temperature trop grande, interprétation avec > et < a 7 degré.
 
 ```{r}
 ps.prop4 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray4 <- ordinate(ps.prop4, method="PCoA", distance="bray")
-plot_ordination(ps.prop4, ord.bray.bray4, color="Temp", title="Bray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop4, ord.bray.bray4, color="Temp", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de la température (>< 7°C)", shape="Samples")
 ```
+
 #### Les echantillons de temperatures inconnues se regreoupe avec ceux <7. La variation de plus ou moins 7 degré ne semble pas avoir d'impact. 
 
 ```{r}
 ps.prop5 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray5 <- ordinate(ps.prop5, method="PCoA", distance="bray")
-plot_ordination(ps.prop5, ord.bray.bray5, color="pH", title="Bray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop5, ord.bray.bray5, color="pH", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et du pH", shape="Samples")
 ```
+
 #### Le pH ne semble par etre un paramètre influcencant les populations.
 
 ```{r}
 ps.prop6 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.bray.bray6 <- ordinate(ps.prop6, method="PCoA", distance="bray")
-plot_ordination(ps.prop6, ord.bray.bray6, color="Profondeur", title="Bray Curtis PCoA", shape="Samples")
+plot_ordination(ps.prop6, ord.bray.bray6, color="Profondeur", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de la profondeur", shape="Samples")
 ```
 
 #### La profondeur ne semble par etre un paramètre influcencant les populations.
@@ -448,6 +456,7 @@ ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
+
 #### Les Vibrio sont la famille dominante chez les poissons, dans la colonne d'eau et les sédiments. L'abondance est généralement plus élevé chez les poissons et au plus faible dans les sédiments. 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -455,6 +464,7 @@ ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="pH", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
+
 #### les pH extrêmes sembles inhibiter les croissances bactériennes, avec les meilleures abondance a pH 9.55-9.56.
 
 ```{r}
@@ -463,7 +473,9 @@ ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Temp", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
+
 #### Les abondances sembles plus fortes avec une température inférieure a 7 degré.
+
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
@@ -471,6 +483,7 @@ ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Oxygen", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
 
+#### Les abondances sembles legrement plus fortes avec un taux d'oxygne de 4-4.1.
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -478,6 +491,7 @@ ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Profondeur", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
+
 #### pour les echantillons de la colonne d'eau et le sédiment, les abondances sont les memes en fonction de la profondeur, neanmoins il y a une variation de composition avec une présence de Peptostreptococcaceae de 0-1m de pronfondeur dans le sédiment. Dans la colonne d'eau présence d'Aeormonadaceae de 0-1 mètre de pronfeur, et plus grande abondance de Leptotrichiaceae a 7-10 mtre. Chez les poissons plus forte abondance à 7-10 mtre de profondeur et présence de Streptococcaceae. 
 
 ```{r}
@@ -487,7 +501,7 @@ ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Localisation", fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
 
-#### Les poissons sotn echantillonés uniquement aux localisations Edremit et Gevas-Inkoy. Les abondances bactériennes pour les eaux et les sédiments sont relativements les memes. Uniquement les echantillons provenant de poisson sont largement suppérieurs en terme d'abondance.
+#### Les poissons sont echantillonés uniquement aux localisations Edremit et Gevas-Inkoy. Les abondances bactériennes pour les eaux et les sédiments sont relativements les memes. Uniquement les echantillons provenant de poisson sont largement suppérieurs en terme d'abondance.
 
 
 ### Conclusion
@@ -496,6 +510,7 @@ plot_bar(ps.top20, x="Localisation", fill="Family") + facet_wrap(~Samples, scale
 
 #### Les Vibrio sont majoritaire en toutes conditions. Les plus grandes abondances de microorganismes sont ceux echantillonés dans les poissons, cela peut s'expliquer par l'intéraction des bactéries avec l'organisme hote, et notamment par la présence des bactéries intestinales. Les vibrio sont en effet une famille de bastéries typiques de l'eaux de mer, des estuaires et des intestins des animaux marins. Ceci explique donc leurs présence dans nos echantillons, car ce sont bien des lacs salés qui ont ete analysés.
 
+#### Du fait de l'impossibilité d'overlap les séquences, et de l'utilisation de 'justConcatenate', il est possible que ces résultats ne soit pas exacte. Il aurait peut etre été interessant de séquencer une région de 16S plus grande pour possiblement éviter ce soucis. (Je n'ai pas trouvé la solution en terme de code pour regler ceci)
 
 
 # TEST 

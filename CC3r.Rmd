@@ -7,6 +7,8 @@ author: Mrozinski Alexandre
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
+### Lien de l'article: https://www.nature.com/articles/s41598-021-97980-3
+
 ```{r library, include=FALSE}
 library(stringr)
 library(rmarkdown)
@@ -49,7 +51,7 @@ mkdir data
 wget -P data -i URLs
 ```
 
-```{bash}
+```{bash, eval=FALSE}
 cd data
 gunzip -d *.gz
 ```
@@ -80,11 +82,16 @@ names(filtRs) <- sample.names
 ```
 
 ```{r}
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, trimLeft=c(50,55),
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, trimLeft=c(50,55), truncLen =c(145,130),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=TRUE)
 head(out)
 ```
+
+#### Amorces de 50 et 55 pb, pas de truncLen légé car soucis au niveau du mergers. 
+#### V3 and V4 regions 
+#### sens: 5′-TCGTCGGCAGCGTCAGATGTGTATAAGAGACAGCCTACGGGNGGCWGCAG-3′
+#### anti-sens: 5′-GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAGGACTACHVGGGTATCTAATCC-3′
 
 # Learn the Error Rates
 
@@ -125,10 +132,9 @@ dadaRs[[1]]
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, justConcatenate=TRUE, verbose=TRUE)
 head(mergers[[1]])
 ```
+#### Impossible de merges les séquences, la commande 'justConcatenate' permet de les mettres une a une avec des NNNNN a l'endroit de l'overlap.
 
 # Construct sequence table
-
-
 ```{r}
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
@@ -314,6 +320,15 @@ Temperature[Localisation == "Gevaş-DSİ-2"] <- "4.7"
 Temperature[Localisation == "Akdamar"] <- "6.4"
 Temperature[Localisation == "Gevaş-İnköy"] <- "?"
 
+#TempMoyennesRegroupés
+Temp <- "<7"
+Temp[1:61] <- "<7"
+Temp[Localisation == "Ergil-1"] <- ">7"
+Temp[Localisation == "Ergil-2"] <- ">7"
+Temp[Localisation == "Gevaş"] <- ">7"
+#Temp[Localisation == "Akdamar"] <- ">7"
+Temp[Localisation == "Gevaş-İnköy"] <- "?"
+
 
 #profondeur
 Profondeur <- "7-10"
@@ -354,11 +369,10 @@ pH[Localisation == "Gevaş-İnköy"] <- "?"
 
 
 
-samdf <- data.frame(code_name, Samples, Localisation, Temperature, Profondeur, Oxygen, pH) 
+samdf <- data.frame(code_name, Samples, Localisation, Temperature, Temp, Profondeur, Oxygen, pH) 
 rownames(samdf) <- samples.out
 print(samdf)
 ```
-
 
 ```{r}
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
@@ -375,40 +389,177 @@ ps
 ```
 
 ```{r}
-plot_richness(ps, x="Samples", measures=c("Shannon", "Simpson"), color="pH")
+plot_richness(ps, x="Samples", measures=c("Shannon", "Simpson"), color="code_name")
 ```
+#### Les echantillons sont plutot regroupés, neanmoins ceux provenant des poissons sont légèrement a part des autres. Les populations bactiriennes sont pour la plupart communes mais varient légrement pour les poissons.
 
 ```{r}
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
-ord.nmds.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
+ord.jac.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
+plot_ordination(ps.prop, ord.jac.bray, color="Samples", title="Bray PCoA")
 ```
-
+#### Les echantillons provenant des poissons sont regroupés entre eux. Ceux provenant de la colonne d'eau et des sédiments sont entre eux et formes 2 clusters distincts.
 ```{r}
-plot_ordination(ps.prop, ord.nmds.bray, color="Localisation", title="Bray PCoA", shape="pH")
+ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.bray.bray2 <- ordinate(ps.prop2, method="PCoA", distance="bray")
+plot_ordination(ps.prop2, ord.bray.bray2, color="Localisation", title="JBray Curtis PCoA", shape="Samples")
 ```
+#### La localisation d'echantillonage ne semble par etre un paramètre influcencant les populations.
 
 ```{r}
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
-ord.nmds.bray2 <- ordinate(ps.prop, method="PCoA", distance="jaccard")
+ord.bray.bray2 <- ordinate(ps.prop2, method="PCoA", distance="bray")
+plot_ordination(ps.prop2, ord.bray.bray2, color="Oxygen", title="JBray Curtis PCoA", shape="Samples")
 ```
-
-```{r}
-plot_ordination(ps.prop2, ord.nmds.bray2, color="code_name", title="Jaccard PCoA", shape="Localisation")
-```
+#### Le taux d'oxygene ne semble par etre un paramètre influcencant les populations.
 
 ```{r}
 ps.prop3 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
-ord.coa.bray <- ordinate(ps.prop3, method="CoA", distance="jaccard")
+ord.bray.bray3 <- ordinate(ps.prop3, method="PCoA", distance="bray")
+plot_ordination(ps.prop3, ord.bray.bray3, color="Samples", title="Bray Curtis PCoA", shape="Temperature")
 ```
+#### Echelle de temperature trop grande, interprétation avec > et < a 7 degré.
 
 ```{r}
-plot_ordination(ps.prop3, ord.coa.bray, color="Localisation", title="CoA")
+ps.prop4 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.bray.bray4 <- ordinate(ps.prop4, method="PCoA", distance="bray")
+plot_ordination(ps.prop4, ord.bray.bray4, color="Temp", title="Bray Curtis PCoA", shape="Samples")
 ```
+#### Les echantillons de temperatures inconnues se regreoupe avec ceux <7. La variation de plus ou moins 7 degré ne semble pas avoir d'impact. 
+
+```{r}
+ps.prop5 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.bray.bray5 <- ordinate(ps.prop5, method="PCoA", distance="bray")
+plot_ordination(ps.prop5, ord.bray.bray5, color="pH", title="Bray Curtis PCoA", shape="Samples")
+```
+#### Le pH ne semble par etre un paramètre influcencant les populations.
+
+```{r}
+ps.prop6 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.bray.bray6 <- ordinate(ps.prop6, method="PCoA", distance="bray")
+plot_ordination(ps.prop6, ord.bray.bray6, color="Profondeur", title="Bray Curtis PCoA", shape="Samples")
+```
+
+#### La profondeur ne semble par etre un paramètre influcencant les populations.
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="code_name", fill="Class") + facet_wrap(~Localisation, scales="free_x")
+plot_bar(ps.top20, fill="Family") + facet_wrap(~Samples, scales="free_x")
 ```
+#### Les Vibrio sont la famille dominante chez les poissons, dans la colonne d'eau et les sédiments. L'abondance est généralement plus élevé chez les poissons et au plus faible dans les sédiments. 
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="pH", fill="Family") + facet_wrap(~Samples, scales="free_x")
+```
+#### les pH extrêmes sembles inhibiter les croissances bactériennes, avec les meilleures abondance a pH 9.55-9.56.
+
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Temp", fill="Family") + facet_wrap(~Samples, scales="free_x")
+```
+#### Les abondances sembles plus fortes avec une température inférieure a 7 degré.
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Oxygen", fill="Family") + facet_wrap(~Samples, scales="free_x")
+```
+
+
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Profondeur", fill="Family") + facet_wrap(~Samples, scales="free_x")
+```
+#### pour les echantillons de la colonne d'eau et le sédiment, les abondances sont les memes en fonction de la profondeur, neanmoins il y a une variation de composition avec une présence de Peptostreptococcaceae de 0-1m de pronfondeur dans le sédiment. Dans la colonne d'eau présence d'Aeormonadaceae de 0-1 mètre de pronfeur, et plus grande abondance de Leptotrichiaceae a 7-10 mtre. Chez les poissons plus forte abondance à 7-10 mtre de profondeur et présence de Streptococcaceae. 
+
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Localisation", fill="Family") + facet_wrap(~Samples, scales="free_x")
+```
+
+#### Les poissons sotn echantillonés uniquement aux localisations Edremit et Gevas-Inkoy. Les abondances bactériennes pour les eaux et les sédiments sont relativements les memes. Uniquement les echantillons provenant de poisson sont largement suppérieurs en terme d'abondance.
+
+
+### Conclusion
+
+#### L'alpha et la Beta diversité ne sont réellement influcencé que par l'endroit d'échantillon: poisson, eau ou sédiment. Avec un regroupement précis des echantillon fish et une disperssion groupé de ceux d'eaux et sédiments. Aucun relevé représentatif d'influence du pH, de l'oxygne, de la température ou de la profondeur.
+
+#### Les Vibrio sont majoritaire en toutes conditions. Les plus grandes abondances de microorganismes sont ceux echantillonés dans les poissons, cela peut s'expliquer par l'intéraction des bactéries avec l'organisme hote, et notamment par la présence des bactéries intestinales. Les vibrio sont en effet une famille de bastéries typiques de l'eaux de mer, des estuaires et des intestins des animaux marins. Ceci explique donc leurs présence dans nos echantillons, car ce sont bien des lacs salés qui ont ete analysés.
+
+
+
+# TEST 
+
+```{r}
+ps <- subset_taxa(ps, !is.na(Phylum) & !Phylum %in% c("", "uncharacterized"))
+
+# Compute prevalence of each feature, store as data.frame
+prevdf = apply(X = otu_table(ps),
+               MARGIN = ifelse(taxa_are_rows(ps), yes = 1, no = 2),
+               FUN = function(x){sum(x > 0)})
+# Add taxonomy and total read counts to this data.frame
+prevdf = data.frame(Prevalence = prevdf,
+                    TotalAbundance = taxa_sums(ps),
+                    tax_table(ps))
+```
+
+```{r}
+plyr::ddply(prevdf, "Phylum", function(df1){cbind(mean(df1$Prevalence),sum(df1$Prevalence))})
+```
+
+```{r}
+ps1 = subset_taxa(ps)
+ps1
+```
+
+```{r}
+prevdf1 = subset(prevdf, Phylum %in% get_taxa_unique(ps1, "Phylum"))
+ggplot(prevdf1, aes(TotalAbundance, Prevalence / nsamples(ps),color=Phylum)) +
+  # Include a guess for parameter
+  geom_hline(yintercept = 0.05, alpha = 0.5, linetype = 2) +  geom_point(size = 2, alpha = 0.7) +
+  scale_x_log10() +  xlab("Total Abundance") + ylab("Prevalence [Frac. Samples]") +
+  facet_wrap(~Phylum) + theme(legend.position="none") 
+```
+
+```{r}
+abund <- otu_table(ps)
+abund_ranks <- t(apply(abund, 1, rank))
+```
+
+```{r}
+abund_ranks <- abund_ranks - 329
+abund_ranks[abund_ranks < 1] <- 1
+```
+
+```{r}
+library(dplyr)
+library(reshape2)
+abund_df <- melt(abund, value.name = "abund") %>%
+  left_join(melt(abund_ranks, value.name = "rank"))
+colnames(abund_df) <- c("sample", "seq", "abund", "rank")
+
+abund_df <- melt(abund, value.name = "abund") %>%
+  left_join(melt(abund_ranks, value.name = "rank"))
+colnames(abund_df) <- c("sample", "seq", "abund", "rank")
+
+sample_ix <- sample(1:nrow(abund_df), 2)
+ggplot(abund_df %>%
+         filter(sample %in% abund_df$sample[sample_ix])) +
+  geom_point(aes(x = abund, y = rank, col = sample),
+             position = position_jitter(width = 0.2), size = 1.5) +
+  labs(x = "Abundance", y = "Thresholded rank") +
+  scale_color_brewer(palette = "Set2")
+```
+
+
 

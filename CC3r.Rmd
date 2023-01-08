@@ -88,8 +88,8 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, trimLeft=c(50,55), truncLen =c(
 head(out)
 ```
 
-#### Amorces de 50 et 55 pb, pas de truncLen légé car soucis au niveau du mergers. 
-#### V3 and V4 regions 
+#### Amorces de 50 et 55 pb, truncLen légé car soucis au niveau du mergers. 
+#### V3 and V4 regionsn nécessité de garderau moin 250pb pour la suite ..
 #### sens: 5′-TCGTCGGCAGCGTCAGATGTGTATAAGAGACAGCCTACGGGNGGCWGCAG-3′
 #### anti-sens: 5′-GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAGGACTACHVGGGTATCTAATCC-3′
 
@@ -132,7 +132,7 @@ dadaRs[[1]]
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, justConcatenate=TRUE, verbose=TRUE)
 head(mergers[[1]])
 ```
-#### Impossible de merges les séquences, la commande 'justConcatenate' permet de les mettres une a une avec des NNNNN a l'endroit de l'overlap.
+#### Impossible de merges les séquences, la commande 'justConcatenate' permet de les mettres une a une avec un spacer NNNNN a l'endroit de l'overlap.
 
 # Construct sequence table
 ```{r}
@@ -143,6 +143,10 @@ dim(seqtab)
 ```{r}
 table(nchar(getSequences(seqtab)))
 ```
+
+#### 2ème ligne: nombre de caractères 
+#### 3ème ligne: nombre de séquences qui ont ce nombre de caractères 
+#### Cela permet de vérifier que l'alignement a bien été réalisé
 
 # Remove chimeras
 
@@ -392,7 +396,14 @@ ps
 plot_richness(ps, x="Samples", measures=c("Shannon", "Simpson"), color="code_name")
 ```
 
-#### Les echantillons sont plutot regroupés, neanmoins ceux provenant des poissons sont légèrement a part des autres. Les populations bactiriennes sont pour la plupart communes mais varient légrement pour les poissons.
+#### Les echantillons sont plutot regroupés, neanmoins ceux provenant des poissons sont légèrement a part des autres. Les populations bactériennes sont pour la plupart communes mais varient légrement pour les poissons.
+#### L'analyse avec les différents paramtre (o2, profondeur, température, pH) ne révle rien de représentatif.
+
+```{r}
+plot_richness(ps, x="code_name", measures=c("Shannon", "Simpson"), color="Samples", shape="Temp")
+```
+
+#### Globalement les échantillons provenant de poissons ont une diversité alpha plus faible que ceux de la colonne d'eau ou de sédiments.
 
 ```{r}
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
@@ -416,7 +427,7 @@ ord.bray.bray2 <- ordinate(ps.prop2, method="PCoA", distance="bray")
 plot_ordination(ps.prop2, ord.bray.bray2, color="Oxygen", title="Bray Curtis PCoA: mise en évidence du type de prélèvement et de l'oxygen", shape="Samples")
 ```
 
-#### Le taux d'oxygene ne semble par etre un paramètre influcencant les populations.
+#### Le taux d'oxygene ne semble par etre un paramètre influcencant les populations. Neamoins un possible regroupement autour de 4% d'o2 dissout est repérable.
 
 ```{r}
 ps.prop3 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
@@ -502,15 +513,20 @@ plot_bar(ps.top20, x="Localisation", fill="Family") + facet_wrap(~Samples, scale
 ```
 
 #### Les poissons sont echantillonés uniquement aux localisations Edremit et Gevas-Inkoy. Les abondances bactériennes pour les eaux et les sédiments sont relativements les memes. Uniquement les echantillons provenant de poisson sont largement suppérieurs en terme d'abondance.
+#### Les echantillons d'eaux et de sédiments de Edremit et Gevas ont des abondances bien plus faible, c'est donc bien l'intéraction avec les poissons qui augmente cette abondance.
 
 
 ### Conclusion
 
-#### L'alpha et la Beta diversité ne sont réellement influcencé que par l'endroit d'échantillon: poisson, eau ou sédiment. Avec un regroupement précis des echantillon fish et une disperssion groupé de ceux d'eaux et sédiments. Aucun relevé représentatif d'influence du pH, de l'oxygne, de la température ou de la profondeur.
+#### L'alpha et la Beta diversité ne sont réellement influcencés que par le type d'échantillon: poisson, eau ou sédiment. Avec un regroupement précis des echantillon fish et une disperssion groupé de ceux d'eaux et sédiments. Aucun relevé représentatif d'influence du pH, de l'oxygne, de la température ou de la profondeur.
 
-#### Les Vibrio sont majoritaire en toutes conditions. Les plus grandes abondances de microorganismes sont ceux echantillonés dans les poissons, cela peut s'expliquer par l'intéraction des bactéries avec l'organisme hote, et notamment par la présence des bactéries intestinales. Les vibrio sont en effet une famille de bastéries typiques de l'eaux de mer, des estuaires et des intestins des animaux marins. Ceci explique donc leurs présence dans nos echantillons, car ce sont bien des lacs salés qui ont ete analysés.
+#### Possible influence sur l'oxygène, du pH et de la température sur les abondances, représentant probablement des conditions de développement favorable pour les procaryotes étudiés. 
 
-#### Du fait de l'impossibilité d'overlap les séquences, et de l'utilisation de 'justConcatenate', il est possible que ces résultats ne soit pas exacte. Il aurait peut etre été interessant de séquencer une région de 16S plus grande pour possiblement éviter ce soucis. (Je n'ai pas trouvé la solution en terme de code pour regler ceci)
+#### Les Vibrio sont majoritaires en toutes conditions. Les plus grandes abondances de microorganismes sont ceux echantillonés dans les poissons, cela peut s'expliquer par l'intéraction des bactéries avec l'organisme hote, et notamment par la présence de ces bactéries dans le système digestif des poissons. Les vibrio sont en effet une famille de bastéries typiques de l'eaux de mer, des estuaires et des intestins des animaux marins. Ceci explique donc leurs présence dans nos echantillons, car ce sont bien des lacs salés qui ont ete analysés.
+#### Il aurait été interessant d'échantilloné des poissons d'autres lacs pour pouvoir ainssi les comparer entre eux.
+
+#### Du fait de l'impossibilité d'overlap les séquences, et de l'utilisation de 'justConcatenate', il est possible que ces résultats ne soit pas exactes. Il aurait peut etre été interessant de séquencer une région de 16S plus grande pour possiblement éviter ce soucis. (Je n'ai pas trouvé la solution en terme de code pour regler ceci)
+
 
 
 # TEST 

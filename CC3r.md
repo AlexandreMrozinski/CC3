@@ -540,7 +540,7 @@ head(taxa.print)
     ## [2,] "Vibrionaceae" "Vibrio"
     ## [3,] "Vibrionaceae" NA      
     ## [4,] "Vibrionaceae" "Vibrio"
-    ## [5,] "Vibrionaceae" NA      
+    ## [5,] "Vibrionaceae" "Vibrio"
     ## [6,] "Vibrionaceae" "Vibrio"
 
 # Handoff to phyloseq
@@ -889,7 +889,7 @@ plot_richness(ps, x="Samples", measures=c("Shannon", "Simpson"), color="code_nam
 
 #### Les echantillons sont plutot regroupés, neanmoins ceux provenant des poissons sont légèrement a part des autres. Les populations bactériennes sont pour la plupart communes mais varient légrement pour les poissons.
 
-#### L’analyse avec les différents paramtre (o2, profondeur, température, pH) ne révle rien de représentatif.
+#### L’analyse avec les différents paramtre (o2, profondeur, température, pH) ne révèle rien de représentatif.
 
 ``` r
 plot_richness(ps, x="code_name", measures=c("Shannon", "Simpson"), color="Samples", shape="Temp")
@@ -907,7 +907,7 @@ plot_ordination(ps.prop, ord.jac.bray, color="Samples", title="Bray Curtis PCoA:
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
 
-#### Les echantillons provenant des poissons sont regroupés entre eux. Ceux provenant de la colonne d’eau et des sédiments sont entre eux et formes 2 clusters distincts.
+#### Les échantillons provenant des poissons sont regroupés entre eux. Ceux provenant de la colonne d’eau et des sédiments sont entre eux et formes 2 clusters distincts.
 
 ``` r
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
@@ -917,7 +917,7 @@ plot_ordination(ps.prop2, ord.bray.bray2, color="Localisation", title="Bray Curt
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
-#### La localisation d’echantillonage ne semble par etre un paramètre influcencant les populations.
+#### La localisation d’échantillonage ne semble par etre un paramètre influcencant les populations.
 
 ``` r
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
@@ -927,7 +927,7 @@ plot_ordination(ps.prop2, ord.bray.bray2, color="Oxygen", title="Bray Curtis PCo
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
-#### Le taux d’oxygene ne semble par etre un paramètre influcencant les populations. Neamoins un possible regroupement autour de 4% d’o2 dissout est repérable.
+#### Le taux d’oxygene ne semble par etre un paramètre influcencant les populations. Néamoins un possible regroupement autour de 4% d’o2 dissout est repérable.
 
 ``` r
 ps.prop3 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
@@ -941,7 +941,7 @@ plot_ordination(ps.prop3, ord.bray.bray3, color="Samples", title="Bray Curtis PC
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
 
-#### Echelle de temperature trop grande, interprétation avec \> et \< a 7 degré.
+#### Echelle de température trop grande, interprétation avec \> et \< a 7 degré à la suite.
 
 ``` r
 ps.prop4 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
@@ -951,7 +951,7 @@ plot_ordination(ps.prop4, ord.bray.bray4, color="Temp", title="Bray Curtis PCoA:
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
 
-#### Les echantillons de temperatures inconnues se regreoupe avec ceux \<7. La variation de plus ou moins 7 degré ne semble pas avoir d’impact.
+#### Les échantillons de températures inconnues se regroupent avec ceux \<7. La variation de plus ou moins 7 degré ne semble pas avoir d’impact.
 
 ``` r
 ps.prop5 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
@@ -993,7 +993,7 @@ plot_bar(ps.top20, x="pH", fill="Family") + facet_wrap(~Samples, scales="free_x"
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
 
-#### les pH extrêmes sembles inhibiter les croissances bactériennes, avec les meilleures abondance a pH 9.55-9.56.
+#### les pH extrêmes sembles inhibiter les croissances bactériennes, avec les meilleures abondances a pH 9.55-9.56.
 
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -1015,7 +1015,7 @@ plot_bar(ps.top20, x="Oxygen", fill="Family") + facet_wrap(~Samples, scales="fre
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
 
-#### Les abondances sembles legrement plus fortes avec un taux d’oxygne de 4-4.1.
+#### Les abondances sembles légèrement plus fortes avec un taux d’oxygne de 4-4.1.
 
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -1026,7 +1026,7 @@ plot_bar(ps.top20, x="Profondeur", fill="Family") + facet_wrap(~Samples, scales=
 
 ![](CC3r_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
-#### pour les echantillons de la colonne d’eau et le sédiment, les abondances sont les memes en fonction de la profondeur, neanmoins il y a une variation de composition avec une présence de Peptostreptococcaceae de 0-1m de pronfondeur dans le sédiment. Dans la colonne d’eau présence d’Aeormonadaceae de 0-1 mètre de pronfeur, et plus grande abondance de Leptotrichiaceae a 7-10 mtre. Chez les poissons plus forte abondance à 7-10 mtre de profondeur et présence de Streptococcaceae.
+#### Pour les échantillons de la colonne d’eau et le sédiment, les abondances sont les memes en fonction de la profondeur, néanmoins il y a une variation de composition avec une présence de Peptostreptococcaceae de 0-1m de profondeur dans le sédiment. Dans la colonne d’eau présence d’Aeormonadaceae de 0-1 mètre de pronfeur, et plus grande abondance de Leptotrichiaceae a 7-10 mtre. Chez les poissons plus forte abondance à 7-10 mètre de profondeur et présence de Streptococcaceae.
 
 ``` r
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -1045,7 +1045,7 @@ plot_bar(ps.top20, x="Localisation", fill="Family") + facet_wrap(~Samples, scale
 
 #### L’alpha et la Beta diversité ne sont réellement influcencés que par le type d’échantillon: poisson, eau ou sédiment. Avec un regroupement précis des echantillon fish et une disperssion groupé de ceux d’eaux et sédiments. Aucun relevé représentatif d’influence du pH, de l’oxygne, de la température ou de la profondeur.
 
-#### Possible influence sur l’oxygène, du pH et de la température sur les abondances, représentant probablement des conditions de développement favorable pour les procaryotes étudiés.
+#### Possible influence sur l’oxygène, du pH et de la température sur les abondances, ainsi que la diversité pour certains, représentant probablement des conditions de développement favorable pour les procaryotes étudiés.
 
 #### Les Vibrio sont majoritaires en toutes conditions. Les plus grandes abondances de microorganismes sont ceux echantillonés dans les poissons, cela peut s’expliquer par l’intéraction des bactéries avec l’organisme hote, et notamment par la présence de ces bactéries dans le système digestif des poissons. Les vibrio sont en effet une famille de bastéries typiques de l’eaux de mer, des estuaires et des intestins des animaux marins. Ceci explique donc leurs présence dans nos echantillons, car ce sont bien des lacs salés qui ont ete analysés.
 
@@ -1073,20 +1073,20 @@ plyr::ddply(prevdf, "Phylum", function(df1){cbind(mean(df1$Prevalence),sum(df1$P
 ```
 
     ##                Phylum        1    2
-    ## 1    Actinobacteriota 1.000000   18
-    ## 2        Bacteroidota 1.000000   84
-    ## 3  Caldatribacteriota 1.000000    1
-    ## 4    Campylobacterota 1.000000    1
-    ## 5         Chloroflexi 1.000000   18
-    ## 6       Cyanobacteria 1.940000  194
-    ## 7        Deinococcota 1.000000    5
-    ## 8    Desulfobacterota 1.040541  154
-    ## 9          Firmicutes 1.281346  419
-    ## 10     Fusobacteriota 1.823529   31
-    ## 11             LCP-89 1.000000    1
+    ## 1     Acidobacteriota 1.000000    1
+    ## 2    Actinobacteriota 1.000000   18
+    ## 3        Bacteroidota 1.000000   85
+    ## 4  Caldatribacteriota 1.000000    1
+    ## 5    Campylobacterota 1.000000    1
+    ## 6         Chloroflexi 1.000000   18
+    ## 7       Cyanobacteria 1.921569  196
+    ## 8        Deinococcota 1.000000    5
+    ## 9    Desulfobacterota 1.041667  150
+    ## 10         Firmicutes 1.269113  415
+    ## 11     Fusobacteriota 1.736842   33
     ## 12        Myxococcota 1.000000    1
-    ## 13    Patescibacteria 1.000000    3
-    ## 14    Planctomycetota 1.000000    2
+    ## 13    Patescibacteria 1.000000    4
+    ## 14    Planctomycetota 1.000000    4
     ## 15     Proteobacteria 2.295652 1056
     ## 16  Verrucomicrobiota 1.000000    3
     ## 17              WOR-1 1.000000    1
@@ -1097,10 +1097,10 @@ ps1
 ```
 
     ## phyloseq-class experiment-level object
-    ## otu_table()   OTU Table:         [ 1190 taxa and 61 samples ]
+    ## otu_table()   OTU Table:         [ 1194 taxa and 61 samples ]
     ## sample_data() Sample Data:       [ 61 samples by 8 sample variables ]
-    ## tax_table()   Taxonomy Table:    [ 1190 taxa by 6 taxonomic ranks ]
-    ## refseq()      DNAStringSet:      [ 1190 reference sequences ]
+    ## tax_table()   Taxonomy Table:    [ 1194 taxa by 6 taxonomic ranks ]
+    ## refseq()      DNAStringSet:      [ 1194 reference sequences ]
 
 ``` r
 prevdf1 = subset(prevdf, Phylum %in% get_taxa_unique(ps1, "Phylum"))
